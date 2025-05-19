@@ -51,15 +51,9 @@ eq.inputDelay = 0;
 eq.wUpdatePer = 1;
 eq.const = qammod( 0:(Mary-1), Mary,'gray','UnitAveragePower',1);
 
-
-
-
-
-%ebn0 = convertSNR(snrAwgn,"snr","ebno","BitsPerSymbol",log2(Mary),"SamplesPerSymbol",1);
-%3/berawgn(ebn0,'qam',Mary)
-%bercoding(ebn0,'RS','hard',codewordLength,messageLength,'qam',Mary)
-
+%%%%%%%
 %%% PONIZEJ KOD DO DOBIERANIA SAMPLES PER FRAME - nie tykać!
+%%%%%%%
 logMary = log2(Mary);
 logCodeword = ceil(log2(codewordLength + 1));
 ratio = codewordLength / messageLength;
@@ -76,7 +70,6 @@ maxSamplesPerFrame = 30000;
 samplesPerFrame = ceil(minSamplesPerFrame / minMultiple) * minMultiple;
 
 if samplesPerFrame > maxSamplesPerFrame
-    warning(['Nie znaleziono wartości samplesPerFrame w zakresie ' num2str(minSamplesPerFrame) '-' num2str(maxSamplesPerFrame)]);
     % Wybieramy najbliższą wartość do środka zakresu
     midRange = (minSamplesPerFrame + maxSamplesPerFrame) / 2;
     samplesPerFrame = round(midRange / minMultiple) * minMultiple;
