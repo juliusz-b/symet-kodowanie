@@ -17,7 +17,7 @@ dopplerSpectrum = doppler('Flat');
 
 
 %%% USTAWIENIA SZUMU (AWGN)
-snrAwgn = 60;
+snrAwgn = snr;
 
 %%% USTAWIENIA KODU BCH/RS(codewordLength,messageLength)
 codewordLength = 7;
@@ -38,7 +38,6 @@ rateBlock = messageLength/codewordLength;
 
 %%% USTAWIENIA KODU SPLOTOWEGO
 trellisPoly = poly2trellis(7, [171 133]);
-trellisPoly = poly2trellis(4, [15 16]);
 tracebackDepth = 34;
 rateConv = trellisPoly.numInputSymbols/trellisPoly.numOutputSymbols;
 puncturePattern = ones(1,1); % mozliwosc redukcji rate kodu... Nowy rate kodu to trellisPoly.numInputSymbols/(sum(puncturePattern)/length(puncturePattern)*trellisPoly.numOutputSymbols)
@@ -60,8 +59,36 @@ eq.const = qammod( 0:(Mary-1), Mary,'gray','UnitAveragePower',1);
 %3/berawgn(ebn0,'qam',Mary)
 %bercoding(ebn0,'RS','hard',codewordLength,messageLength,'qam',Mary)
 
-if floor(samplesPerFrame/(messageLength*ceil(log2(1+codewordLength))))~=(samplesPerFrame/(messageLength*ceil(log2(1+codewordLength))))
-    warning('Uwaga! Niepoprawnie dobrano kod do liczby probek. Automatyczna modyfikacja dl. wiadomosci.')
-    mul = ceil(samplesPerFrame/(messageLength*ceil(log2(1+codewordLength))));
-    samplesPerFrame = mul * (messageLength*ceil(log2(1+codewordLength)));
+%%% PONIZEJ KOD DO DOBIERANIA SAMPLES PER FRAME - nie tykać!
+logMary = log2(Mary);
+logCodeword = ceil(log2(codewordLength + 1));
+ratio = codewordLength / messageLength;
+
+lcmValue = lcm(logMary, logCodeword);
+
+numerator = lcmValue * messageLength;
+gcdValue = gcd(numerator, codewordLength);
+minMultiple = numerator / gcdValue;
+
+minSamplesPerFrame = 20000;
+maxSamplesPerFrame = 30000;
+
+samplesPerFrame = ceil(minSamplesPerFrame / minMultiple) * minMultiple;
+
+if samplesPerFrame > maxSamplesPerFrame
+    warning(['Nie znaleziono wartości samplesPerFrame w zakresie ' num2str(minSamplesPerFrame) '-' num2str(maxSamplesPerFrame)]);
+    % Wybieramy najbliższą wartość do środka zakresu
+    midRange = (minSamplesPerFrame + maxSamplesPerFrame) / 2;
+    samplesPerFrame = round(midRange / minMultiple) * minMultiple;
+    if samplesPerFrame < minSamplesPerFrame || samplesPerFrame > maxSamplesPerFrame
+        % Jeśli wciąż poza zakresem, wybieramy najbliższą granicę
+        lowerBound = floor(minSamplesPerFrame / minMultiple) * minMultiple;
+        upperBound = ceil(maxSamplesPerFrame / minMultiple) * minMultiple;
+        
+        if minSamplesPerFrame - lowerBound < upperBound - maxSamplesPerFrame
+            samplesPerFrame = upperBound;
+        else
+            samplesPerFrame = lowerBound;
+        end
+    end
 end
