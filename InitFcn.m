@@ -17,7 +17,7 @@ dopplerSpectrum = doppler('Flat');
 
 
 %%% USTAWIENIA SZUMU (AWGN)
-snrAwgn = snr;
+snrAwgn = 10000;
 
 %%% USTAWIENIA KODU BCH/RS(codewordLength,messageLength)
 codewordLength = 7;
